@@ -1,0 +1,1282 @@
+
+BACKEND ROADMAP
+Omnia Edition
+12 месяцев · 48 недель · от Frontend до Backend Middle
+
+Стек
+TypeScript · NestJS · PostgreSQL · Redis · BullMQ · Docker
+Проект
+Omnia — AI-native SaaS агент-платформа
+Цель
+Backend Middle / Fullstack — международный рынок
+Акцент
+35% SQL · 25% NestJS · 15% Docker · 10% Security · 10% Redis/BullMQ · 5% Testing
+ 
+МЕСЯЦ 1
+HTTP, Node.js, Express, Auth
+Фундамент сервера: как браузер говорит с бэкендом
+
+НЕДЕЛЯ 1  HTTP & сети
+
+ТЕОРИЯ — что изучить
+
+▸ HTTP: Request / Response / Headers / Status Codes
+Что значит 200, 201, 400, 401, 403, 404, 500 — и когда что возвращать
+▸ HTTP-методы: GET / POST / PUT / PATCH / DELETE
+Семантика идемпотентности. Разница PUT vs PATCH на реальных примерах
+▸ URL, Path Params, Query Params
+/users/:id vs /users?role=admin — когда что использовать
+▸ DNS, IP, TCP — путь запроса
+Понять на уровне схемы: DNS resolve → TCP connect → HTTP request → response
+▸ HTTPS, TLS, сертификаты
+Что такое handshake, почему HTTP в 2026 — моветон
+
+ПРАКТИКА — что написать
+
+✦ Postman: сделать 20 запросов на JSONPlaceholder, httpbin.org, reqres.in
+✦ Записать в Postman коллекцию: каждый метод с примером header и body
+✦ Через браузер DevTools изучить реальный TLS-сертификат любого сайта
+✦ Нарисовать на бумаге путь запроса от браузера до сервера
+
+DELIVERABLE НЕДЕЛИ
+Postman-коллекция (20+ запросов) + схема пути запроса от браузера до сервера
+
+НЕДЕЛЯ 2  Node.js — движок под капотом
+
+ТЕОРИЯ — что изучить
+
+▸ Event Loop: фазы и порядок выполнения
+timers → I/O callbacks → idle → poll → check → close. Почему Node не блокируется
+▸ Call Stack, Heap, Task Queue, Microtask Queue
+Разница между setTimeout(fn,0) и Promise.resolve().then(fn)
+▸ Async/Await, Promise, callback hell
+Почему async/await — это синтаксический сахар над Promise. Обработка ошибок
+▸ Streams и Buffers
+Зачем нужны стримы при работе с большими файлами. Readable/Writable/Transform
+▸ File System (fs), Path, OS модули
+readFile vs createReadStream — когда что. Работа с путями кросс-платформенно
+
+ПРАКТИКА — что написать
+
+✦ Написать сервер на чистом Node http без фреймворков: роутинг через if/switch
+✦ Реализовать чтение большого файла через поток и через readFile — измерить память
+✦ Написать промис-цепочку и переписать её в async/await. Обработать все ошибки
+✦ Создать простой CLI-скрипт, который читает .json файл и выводит данные
+
+DELIVERABLE НЕДЕЛИ
+Сервер на чистом Node: GET /users, POST /users, GET /users/:id — без Express
+
+НЕДЕЛЯ 3  Express — структура и middleware
+
+ТЕОРИЯ — что изучить
+
+▸ Middleware: что это и как работает цепочка
+req → middleware1 → middleware2 → handler → res. next() и когда его не вызывать
+▸ Routing: Router, параметры, вложенные роуты
+express.Router(), app.use('/api/v1', router). Разбивка по модулям
+▸ Error Handling Middleware
+Сигнатура (err, req, res, next). Централизованная обработка ошибок
+▸ Validation с zod или joi
+Никогда не доверять входным данным. Схемы валидации как первая линия защиты
+▸ Environment variables (.env)
+dotenv, никогда не коммитить секреты, process.env — паттерны доступа
+
+ПРАКТИКА — что написать
+
+✦ Переписать Node-сервер из недели 2 на Express
+✦ Добавить middleware: логирование каждого запроса (метод, путь, время)
+✦ Добавить zod-валидацию на POST /users (name: string, email: string)
+✦ Написать централизованный error handler, который возвращает {error, message, statusCode}
+
+DELIVERABLE НЕДЕЛИ
+Express CRUD API для /users: GET list, GET :id, POST, PUT, DELETE — с валидацией и error handling
+
+НЕДЕЛЯ 4  Auth: JWT, Cookies, Sessions
+
+ТЕОРИЯ — что изучить
+
+▸ Cookies vs Sessions vs JWT
+Stateful (session в Redis/DB) vs Stateless (JWT). Трейдоффы в масштабировании
+▸ JWT: структура header.payload.signature
+Что подписывается, что шифруется (ничего по умолчанию), почему нельзя хранить пароль
+▸ Access Token + Refresh Token паттерн
+Короткий access (15min), длинный refresh (7d). Rotation стратегия
+▸ bcrypt: хеширование паролей
+Salt rounds, почему нельзя MD5/SHA1, timing attacks
+▸ httpOnly Cookie для refresh token
+XSS не может достать httpOnly. Почему access token в памяти, а не localStorage
+
+ПРАКТИКА — что написать
+
+✦ POST /auth/register: bcrypt hash пароля, сохранить в memory store (пока без БД)
+✦ POST /auth/login: проверить bcrypt, выдать access JWT + refresh в httpOnly cookie
+✦ Middleware authGuard: проверять Authorization: Bearer <token>
+✦ POST /auth/refresh: читать refresh из cookie, выдавать новый access token
+✦ POST /auth/logout: удалять refresh cookie
+
+DELIVERABLE НЕДЕЛИ
+Полный auth flow: register → login → protected route → refresh → logout. Всё через Postman с демонстрацией
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Что такое idempotency и какие HTTP-методы идемпотентны?
+Q: Объясни Event Loop в Node.js. Разница между microtask и macrotask queue.
+Q: Чем отличается JWT от Session-based auth? Когда использовать что?
+Q: Зачем нужен Refresh Token? Как реализовать rotation?
+Q: Что такое middleware в Express? Напиши error handler middleware.
+
+ 
+МЕСЯЦ 2
+PostgreSQL — основы
+Самый важный месяц. SQL — это то, что отделяет инженера от туториал-пасты
+
+НЕДЕЛЯ 5  DDL, DML, базовые запросы
+
+ТЕОРИЯ — что изучить
+
+▸ CREATE TABLE: типы данных PostgreSQL
+integer, bigint, varchar, text, boolean, uuid, timestamptz, jsonb — когда что. PRIMARY KEY, NOT NULL, UNIQUE
+▸ INSERT, UPDATE, DELETE, RETURNING
+RETURNING * — незаменим при работе с ORM. Batch INSERT. UPDATE с условием
+▸ SELECT: WHERE, ORDER BY, LIMIT, OFFSET
+Pagination через OFFSET vs cursor-based. Почему OFFSET медленный на больших таблицах
+▸ Constraints: FK, CHECK, UNIQUE
+ON DELETE CASCADE vs RESTRICT vs SET NULL. Почему FK — не просто красота
+▸ Нормализация: 1NF, 2NF, 3NF
+Практическое понимание: что в отдельную таблицу, что можно денормализовать
+
+ПРАКТИКА — что написать
+
+✦ Создать схему Omnia: users (id uuid, email, password_hash, created_at, updated_at)
+✦ Создать workspaces (id uuid, name, slug, owner_id FK → users)
+✦ INSERT 10 пользователей, 3 воркспейса, UPDATE email одного, DELETE одного с проверкой CASCADE
+✦ Написать 10 SELECT запросов разной сложности с WHERE, ORDER BY, LIMIT
+
+DELIVERABLE НЕДЕЛИ
+Omnia schema v1: таблицы users + workspaces с FK, constraints, seed-данными (10 users, 5 workspaces)
+
+НЕДЕЛЯ 6  JOIN — связи между таблицами
+
+ТЕОРИЯ — что изучить
+
+▸ INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN
+Визуальная диаграмма Венна. INNER — только совпадения. LEFT — все левые + совпадения справа
+▸ Многие-ко-многим: junction table
+workspace_members(workspace_id, user_id, role) — паттерн для Omnia memberships
+▸ Self JOIN
+Иерархии: организации, категории, managers → employees
+▸ Subqueries vs JOIN
+Когда subquery читаемее, когда JOIN быстрее. Correlated subquery — опасность N+1
+
+ПРАКТИКА — что написать
+
+✦ Создать таблицу workspace_members(workspace_id, user_id, role, joined_at)
+✦ JOIN: получить всех участников воркспейса с именами и email
+✦ JOIN: получить все воркспейсы пользователя + его роль в каждом
+✦ LEFT JOIN: найти пользователей без ни одного воркспейса (IS NULL паттерн)
+✦ Subquery: найти воркспейсы с более чем 3 участниками
+
+DELIVERABLE НЕДЕЛИ
+5 сложных JOIN-запросов для Omnia + таблица workspace_members. Все запросы задокументированы с комментариями
+
+НЕДЕЛЯ 7  Агрегация, CTE, Window Functions
+
+ТЕОРИЯ — что изучить
+
+▸ GROUP BY, HAVING, агрегатные функции
+COUNT, SUM, AVG, MIN, MAX. Разница WHERE vs HAVING. GROUP BY с несколькими полями
+▸ CTE (WITH clause)
+Читаемость сложных запросов. Рекурсивные CTE для иерархий. Materialized vs inline
+▸ Window Functions: ROW_NUMBER, RANK, LAG, LEAD
+OVER(PARTITION BY ... ORDER BY ...). Нумерация строк внутри группы — частый кейс
+▸ DISTINCT ON
+Специфика PostgreSQL. Получить последнюю запись по группе без subquery
+
+ПРАКТИКА — что написать
+
+✦ COUNT: количество участников в каждом воркспейсе
+✦ GROUP BY + HAVING: воркспейсы с > 2 участниками
+✦ CTE: написать сложный запрос через WITH — сначала получить активных юзеров, потом их воркспейсы
+✦ Window Function: ROW_NUMBER() для нумерации участников по дате вступления
+✦ DISTINCT ON: получить последний вход каждого пользователя (если есть таблица sessions)
+
+DELIVERABLE НЕДЕЛИ
+Аналитические запросы для Omnia dashboard: топ воркспейсов по участникам, активность за период, статистика ролей
+
+НЕДЕЛЯ 8  Индексы, EXPLAIN, производительность
+
+ТЕОРИЯ — что изучить
+
+▸ B-Tree индекс: как работает
+Структура дерева. Sequential scan vs Index scan. Когда индекс не помогает (low cardinality, small table)
+▸ Composite Index: порядок полей
+(a, b) индекс работает для WHERE a=... и WHERE a=... AND b=..., но НЕ для WHERE b=...
+▸ Partial Index
+CREATE INDEX ON users(email) WHERE deleted_at IS NULL — экономия места и скорость
+▸ EXPLAIN и EXPLAIN ANALYZE
+Seq Scan vs Index Scan vs Bitmap Heap Scan. Rows, cost, actual time. Как читать план
+▸ N+1 проблема
+SELECT users потом SELECT workspace FOR EACH user = катастрофа. JOIN или DataLoader
+
+ПРАКТИКА — что написать
+
+✦ EXPLAIN ANALYZE на 3 запросах из недели 7 — найти Seq Scan и убрать его индексом
+✦ Создать partial index на workspace_members WHERE role = 'owner'
+✦ Создать composite index на (workspace_id, user_id) для memberships
+✦ Сгенерировать 10 000 строк тестовых данных, сравнить время до/после индекса
+
+DELIVERABLE НЕДЕЛИ
+Отчёт: 3 запроса до и после оптимизации с EXPLAIN ANALYZE output + список всех индексов Omnia с обоснованием
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Объясни разницу INNER JOIN vs LEFT JOIN на примере users и orders.
+Q: Что такое N+1 проблема? Как обнаружить и исправить?
+Q: Когда индекс не помогает? Что такое low cardinality?
+Q: Напиши запрос: найти топ-3 воркспейса по количеству участников за последний месяц.
+Q: Чем CTE отличается от subquery? Когда использовать рекурсивный CTE?
+
+ 
+МЕСЯЦ 3
+Продвинутый PostgreSQL
+Транзакции, конкурентность, надёжность — то, за что платят деньги
+
+НЕДЕЛЯ 9  Транзакции и ACID
+
+ТЕОРИЯ — что изучить
+
+▸ ACID: Atomicity, Consistency, Isolation, Durability
+Атомарность: всё или ничего. Как PostgreSQL гарантирует C, I, D на уровне WAL
+▸ BEGIN / COMMIT / ROLLBACK
+Явные транзакции. Savepoints. Вложенные транзакции (SAVEPOINT + ROLLBACK TO)
+▸ WAL (Write-Ahead Log)
+Почему БД не теряет данные при краше. Checkpoint. pg_wal директория
+▸ Практика: перевод средств между счетами
+Классический пример: дебит одного, кредит другого в одной транзакции
+
+ПРАКТИКА — что написать
+
+✦ Написать транзакцию: создать workspace + добавить owner в workspace_members атомарно
+✦ Симулировать краш в середине транзакции (ROLLBACK) — убедиться что данные не изменились
+✦ SAVEPOINT: часть операций отменить, часть закоммитить
+✦ Создать функцию в SQL которая выполняет invite_user(workspace_id, user_id) транзакционно
+
+DELIVERABLE НЕДЕЛИ
+Набор транзакционных сценариев Omnia: создание воркспейса, инвайт пользователя, удаление участника — все атомарны
+
+НЕДЕЛЯ 10  MVCC, Locks, Deadlocks
+
+ТЕОРИЯ — что изучить
+
+▸ MVCC: Multi-Version Concurrency Control
+PostgreSQL не блокирует читателей писателями. Как версии строк (xmin/xmax) дают snapshot isolation
+▸ Row-level locks: SELECT FOR UPDATE / FOR SHARE
+Pessimistic locking. Когда нужно явно залочить строку перед UPDATE
+▸ Table-level locks и их уровни
+ACCESS SHARE → ACCESS EXCLUSIVE. Какие операции блокируют ALTER TABLE
+▸ Deadlock: как возникает и как PostgreSQL его решает
+Circular lock dependency. PostgreSQL автоматически убивает одну транзакцию. Как предотвратить
+
+ПРАКТИКА — что написать
+
+✦ Симулировать два конкурентных UPDATE одной строки — увидеть поведение PostgreSQL
+✦ SELECT FOR UPDATE: симулировать бронирование слота (workspace invite limit)
+✦ Создать deadlock намеренно из двух сессий psql — увидеть ERROR в логе
+✦ Исправить deadlock: всегда лочить таблицы в одном порядке
+
+DELIVERABLE НЕДЕЛИ
+Документ: 3 сценария конкурентного доступа в Omnia + SQL-демонстрации с комментариями решений
+
+НЕДЕЛЯ 11  Isolation Levels
+
+ТЕОРИЯ — что изучить
+
+▸ 4 уровня изоляции: READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE
+PostgreSQL использует RC по умолчанию. RU в PostgreSQL работает как RC (специфика)
+▸ Dirty Read, Non-Repeatable Read, Phantom Read
+Аномалии и какой уровень от чего защищает. Таблица 4x3
+▸ SERIALIZABLE в PostgreSQL: SSI
+Serializable Snapshot Isolation — optimistic concurrency без традиционных блокировок
+▸ Когда нужен REPEATABLE READ vs SERIALIZABLE
+Финансовые операции, аудит, отчёты — выбрать правильный уровень
+
+ПРАКТИКА — что написать
+
+✦ Воспроизвести Non-Repeatable Read на уровне READ COMMITTED из двух сессий
+✦ Убедиться что REPEATABLE READ защищает от него — одинаковый снимок в рамках транзакции
+✦ Написать тест: два пользователя одновременно принимают последнее место в воркспейсе
+✦ Решить через SERIALIZABLE или SELECT FOR UPDATE — сравнить подходы
+
+DELIVERABLE НЕДЕЛИ
+Шпаргалка: таблица isolation levels × аномалии + 2 реальных кейса Omnia с выбранным уровнем и обоснованием
+
+НЕДЕЛЯ 12  Продвинутые возможности PostgreSQL
+
+ТЕОРИЯ — что изучить
+
+▸ JSONB: индексы и операторы
+GIN индекс на JSONB. Операторы ->, ->>, @>, ?. Когда использовать JSONB vs отдельные колонки
+▸ Full-text Search в PostgreSQL
+tsvector, tsquery, to_tsvector, plainto_tsquery, GIN индекс — базовый поиск без Elasticsearch
+▸ Partitioning: Range и List
+Партиционирование по дате (logs, events). Автоматическое создание партиций
+▸ pg_stat_statements и мониторинг
+Найти самые медленные запросы в продакшне. pg_stat_activity для активных соединений
+
+ПРАКТИКА — что написать
+
+✦ Добавить колонку metadata JSONB в workspaces, записать 5 различных конфигураций
+✦ GIN индекс на metadata, запрос workspace с определённым feature флагом через @>
+✦ Реализовать поиск по воркспейсам через full-text search (name + description)
+✦ pg_stat_statements: включить, выполнить 20 запросов, найти топ-3 самых дорогих
+
+DELIVERABLE НЕДЕЛИ
+Omnia schema v2: JSONB metadata на workspaces + full-text поиск + список всех индексов с типами (B-tree, GIN, partial)
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Что такое MVCC и почему PostgreSQL не блокирует читателей?
+Q: Объясни разницу между SELECT FOR UPDATE и SERIALIZABLE isolation.
+Q: Как возникает deadlock? Напиши пример. Как предотвратить?
+Q: Когда использовать JSONB, а когда лучше отдельные колонки?
+Q: Что такое WAL и как он обеспечивает durability?
+
+ 
+МЕСЯЦ 4
+NestJS — архитектура
+Теперь открываем Nest. Основа архитектуры Omnia
+
+НЕДЕЛЯ 13  Modules, Controllers, Providers
+
+ТЕОРИЯ — что изучить
+
+▸ Архитектура NestJS: модульная система
+@Module(imports, controllers, providers, exports). Корневой AppModule и feature modules
+▸ Controllers: роутинг и декораторы
+@Get, @Post, @Param, @Body, @Query, @Headers. Правила именования и ответственность контроллера
+▸ Providers (Services): бизнес-логика
+@Injectable(). Сервис — единственное место где живёт логика. Контроллер только маршрутизирует
+▸ Структура проекта Omnia
+src/modules/users/, src/modules/workspaces/, src/modules/auth/. Каждый модуль самодостаточен
+
+ПРАКТИКА — что написать
+
+✦ Создать NestJS проект: nest new omnia-backend
+✦ Создать UsersModule: UsersController + UsersService + UsersModule
+✦ GET /users, POST /users, GET /users/:id, PATCH /users/:id, DELETE /users/:id
+✦ Данные пока in-memory Map — без БД. Фокус на структуре
+
+DELIVERABLE НЕДЕЛИ
+NestJS Omnia skeleton: UsersModule + WorkspacesModule с in-memory CRUD. Чистая структура папок
+
+НЕДЕЛЯ 14  Dependency Injection — глубоко
+
+ТЕОРИЯ — что изучить
+
+▸ DI Container: что это и зачем
+IoC принцип. NestJS сам создаёт и управляет экземплярами. Не new Service(), а инъекция через конструктор
+▸ Scopes: DEFAULT, REQUEST, TRANSIENT
+Синглтон по умолчанию. REQUEST scope — новый экземпляр на каждый запрос (осторожно с памятью)
+▸ Custom Providers: useValue, useFactory, useClass
+useFactory для асинхронной инициализации (подключение к БД). useValue для конфигов и моков
+▸ Circular Dependencies и forwardRef()
+Как их избежать через дизайн. forwardRef — крайний случай, не архитектурное решение
+
+ПРАКТИКА — что написать
+
+✦ Создать ConfigModule с useFactory, читающий .env через @nestjs/config
+✦ DatabaseModule с useFactory: создать pg Pool, вернуть как провайдер
+✦ Инъектировать pg Pool в UsersService — первые реальные запросы к PostgreSQL
+✦ Написать unit тест для UsersService с mock провайдером (useValue: { query: jest.fn() })
+
+DELIVERABLE НЕДЕЛИ
+UsersService подключён к реальному PostgreSQL через DI. ConfigModule читает DATABASE_URL из .env
+
+НЕДЕЛЯ 15  Pipes, Guards, Interceptors
+
+ТЕОРИЯ — что изучить
+
+▸ Pipes: трансформация и валидация
+ValidationPipe с class-validator + class-transformer. ParseUUIDPipe, ParseIntPipe. Глобальный vs локальный pipe
+▸ Guards: авторизация запросов
+canActivate() → boolean | Observable<boolean>. JwtAuthGuard, RolesGuard. Порядок выполнения
+▸ Interceptors: cross-cutting concerns
+Логирование, трансформация ответа, кэширование. tap() и map() из RxJS. Execution context
+▸ Exception Filters
+Централизованная обработка ошибок. HttpException, кастомные исключения. @Catch() декоратор
+
+ПРАКТИКА — что написать
+
+✦ Глобальный ValidationPipe: DTO для CreateUserDto с @IsEmail, @MinLength(8) для пароля
+✦ JwtAuthGuard: защитить все /workspaces роуты — без токена 401
+✦ LoggingInterceptor: логировать метод, путь, время выполнения каждого запроса
+✦ HttpExceptionFilter: возвращать единый формат {statusCode, message, timestamp, path}
+
+DELIVERABLE НЕДЕЛИ
+Omnia API с полным слоем Guards + Validation + Interceptors. Все ошибки имеют единый формат
+
+НЕДЕЛЯ 16  Auth Module в NestJS
+
+ТЕОРИЯ — что изучить
+
+▸ Passport.js в NestJS: @nestjs/passport
+Strategy паттерн. JwtStrategy, LocalStrategy. PassportModule.register()
+▸ JwtModule: signing и verification
+JwtModule.registerAsync() с ConfigService. Алгоритм HS256 vs RS256 — когда что
+▸ Refresh Token стратегия в NestJS
+Два токена, два guard, отдельный endpoint /auth/refresh. Хранение refresh в БД для revocation
+▸ Декоратор @CurrentUser()
+Кастомный parameter decorator — извлечь user из request объекта элегантно
+
+ПРАКТИКА — что написать
+
+✦ AuthModule: LocalStrategy для login (email+password), JwtStrategy для защиты роутов
+✦ POST /auth/register, POST /auth/login, POST /auth/refresh, POST /auth/logout
+✦ Сохранять refresh tokens в таблице refresh_tokens(user_id, token_hash, expires_at)
+✦ @CurrentUser() декоратор: использовать в WorkspacesController для owner_id
+
+DELIVERABLE НЕДЕЛИ
+Полный AuthModule в NestJS: register/login/refresh/logout + защищённые роуты + refresh tokens в БД
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Объясни принцип IoC и DI. Зачем это нужно?
+Q: Чем Guards отличаются от Middleware в NestJS?
+Q: Что такое Pipe в NestJS? Как работает ValidationPipe?
+Q: Как хранить Refresh Token безопасно? Как реализовать revocation?
+Q: Что такое Interceptor? Приведи 3 use case.
+
+ 
+МЕСЯЦ 5
+Drizzle ORM + Connection Pooling
+Подключаем PostgreSQL к NestJS правильно
+
+НЕДЕЛЯ 17  Drizzle: схемы и базовые операции
+
+ТЕОРИЯ — что изучить
+
+▸ Drizzle vs Prisma vs TypeORM — выбор и трейдоффы
+Drizzle: SQL-first, легковесный, TypeScript-native. Prisma: schema.prisma, мощный, но тяжёлый. TypeORM: декораторы, legacy
+▸ Определение схемы: pgTable, колонки, типы
+uuid('id').primaryKey().defaultRandom(), text(), timestamp().defaultNow(), references()
+▸ Базовые операции: select, insert, update, delete
+db.select().from(users).where(eq(users.id, id)) — typesafe SQL
+▸ Drizzle Kit: генерация и применение миграций
+drizzle-kit generate → drizzle-kit migrate. Файлы миграций в git — обязательно
+
+ПРАКТИКА — что написать
+
+✦ Установить drizzle-orm + drizzle-kit, настроить drizzle.config.ts
+✦ Переписать схему Omnia на Drizzle: users, workspaces, workspace_members
+✦ Сгенерировать и применить первую миграцию
+✦ Переписать UsersService с raw pg → Drizzle typed queries
+
+DELIVERABLE НЕДЕЛИ
+Omnia schema в Drizzle + первая применённая миграция + все 3 таблицы с полными CRUD операциями
+
+НЕДЕЛЯ 18  Relations, Transactions в Drizzle
+
+ТЕОРИЯ — что изучить
+
+▸ Relations API: one-to-many, many-to-many
+relations() функция для typed joins. withRelations для вложенных запросов. Lazy vs eager loading
+▸ Транзакции в Drizzle
+db.transaction(async (tx) => { ... }) — передавать tx вместо db в nested операции
+▸ Prepared Statements
+db.select().from(users).where(eq(users.id, placeholder('id'))).prepare('get_user')
+▸ Conflict handling: onConflictDoNothing, onConflictDoUpdate
+Upsert паттерн — критичен для workspace_members при повторном инвайте
+
+ПРАКТИКА — что написать
+
+✦ Написать getWorkspaceWithMembers: workspace + все участники с данными users (relations join)
+✦ Транзакция: createWorkspace → addOwnerAsMember атомарно через db.transaction()
+✦ Upsert в workspace_members: если уже существует — обновить роль, иначе создать
+✦ Prepared statement для getUserByEmail — высокочастотный запрос при auth
+
+DELIVERABLE НЕДЕЛИ
+WorkspacesService: полный CRUD + addMember/removeMember + getWithMembers — всё через Drizzle с транзакциями
+
+НЕДЕЛЯ 19  Connection Pooling: pgBouncer и pg Pool
+
+ТЕОРИЯ — что изучить
+
+▸ Почему connection pooling критичен
+PostgreSQL создаёт процесс на каждое соединение. Без пула 100 запросов = 100 процессов. Лимит ~100-500
+▸ pg Pool в Node: min, max, idleTimeout
+Pool настройки. acquire/release. Leak detection. Почему не new Client() в каждом запросе
+▸ pgBouncer: session vs transaction vs statement mode
+Transaction pooling — одно соединение к PG на время транзакции. Ограничения PREPARE в transaction mode
+▸ Мониторинг пула: pg_stat_activity
+Сколько соединений active/idle. Как обнаружить connection leak
+
+ПРАКТИКА — что написать
+
+✦ Настроить pg Pool с max: 10, idleTimeoutMillis: 30000 в DatabaseModule
+✦ Написать middleware, который логирует pool.totalCount, pool.idleCount на каждый запрос
+✦ Симулировать connection leak (не release) — увидеть в pg_stat_activity
+✦ Исправить и верифицировать через мониторинг
+
+DELIVERABLE НЕДЕЛИ
+DatabaseModule с корректно настроенным пулом + мониторинг соединений + документация настроек
+
+НЕДЕЛЯ 20  Миграции, Seeds, тестовая БД
+
+ТЕОРИЯ — что изучить
+
+▸ Стратегия миграций в команде
+Файлы миграций в git. Никогда не редактировать применённую миграцию. Naming convention: 0001_create_users.sql
+▸ Seeds: тестовые данные
+seed.ts с детерминированными данными. Фиксированные UUIDs для тестов. faker.js для bulk data
+▸ Тестовая база данных
+Отдельная БД для тестов. beforeEach: transaction → rollback. Изоляция тестов без truncate
+▸ Schema drift detection
+drizzle-kit check — обнаружить расхождение между схемой и реальной БД в CI
+
+ПРАКТИКА — что написать
+
+✦ Написать seed.ts: 5 users + 3 workspaces + memberships детерминированно
+✦ npm run seed и npm run seed:reset скрипты
+✦ Настроить отдельную test DB через DATABASE_URL_TEST в .env.test
+✦ Базовый тест WorkspacesService с реальной тестовой БД (transaction rollback pattern)
+
+DELIVERABLE НЕДЕЛИ
+Полная инфраструктура данных: миграции + seeds + test DB. Команда npm run db:reset оставляет чистое состояние
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Чем Drizzle отличается от Prisma? Когда выбрать Drizzle?
+Q: Зачем нужен connection pooling? Что будет без него под нагрузкой?
+Q: Как реализовать транзакции в Drizzle? Покажи паттерн.
+Q: Что такое migration drift? Как предотвратить в CI?
+Q: Как тестировать код с БД? Что такое transaction rollback pattern?
+
+ 
+МЕСЯЦ 6
+Omnia MVP
+Первая деплоенная версия продукта. Реальный код каждый день
+
+НЕДЕЛЯ 21  Users API — полный цикл
+
+ТЕОРИЯ — что изучить
+
+▸ API Versioning: /api/v1/
+Глобальный prefix + versioning strategy. Как не сломать клиентов при изменениях
+▸ Pagination: cursor-based vs offset
+Cursor (created_at + id) — стабильный при вставках. Offset — прост, но смещается
+▸ Soft Delete паттерн
+deleted_at timestamptz. Partial index WHERE deleted_at IS NULL. Не удалять данные физически
+▸ Audit fields: created_at, updated_at
+DEFAULT NOW(), trigger для updated_at или ORM hook. Timezone: всегда UTC в БД
+
+ПРАКТИКА — что написать
+
+✦ GET /api/v1/users: cursor-based pagination (limit + cursor)
+✦ GET /api/v1/users/:id — 404 если не найден через кастомное исключение
+✦ PATCH /api/v1/users/:id — только своя учётная запись (Guard проверяет currentUser.id === params.id)
+✦ DELETE /api/v1/users/:id — soft delete, возвращает 204
+✦ GET /api/v1/users/me — получить текущего авторизованного пользователя
+
+DELIVERABLE НЕДЕЛИ
+Users API v1: 5 эндпоинтов, cursor pagination, soft delete, auth guard. Протестировано в Postman полностью
+
+НЕДЕЛЯ 22  Workspaces API + Memberships
+
+ТЕОРИЯ — что изучить
+
+▸ RBAC: Role-Based Access Control
+Роли: owner, admin, member. RolesGuard + @Roles() декоратор. Проверка роли в воркспейсе
+▸ Slug: генерация и уникальность
+workspace slug = URL-friendly name. slugify() + проверка уникальности + инкремент при коллизии
+▸ Invite flow: токен-ссылка
+invite_tokens таблица: token (uuid), workspace_id, invited_email, expires_at, used_at
+▸ Ownership transfer
+Только один owner. Передача: создать нового owner, старый становится admin. Атомарно
+
+ПРАКТИКА — что написать
+
+✦ POST /workspaces: создать + автоматически добавить creator как owner
+✦ GET /workspaces/my: воркспейсы текущего пользователя с его ролью
+✦ POST /workspaces/:id/invite: создать invite token, вернуть ссылку
+✦ POST /workspaces/join/:token: принять инвайт, добавить в members
+✦ DELETE /workspaces/:id/members/:userId: только owner/admin могут удалять
+
+DELIVERABLE НЕДЕЛИ
+Workspaces API: создание, инвайт через токен, управление участниками с RBAC. Полный flow задокументирован
+
+НЕДЕЛЯ 23  API Design, Error Handling, OpenAPI
+
+ТЕОРИЯ — что изучить
+
+▸ RESTful API Design Principles
+Существительные в URL, не глаголы. Консистентность именования. HTTP статусы — не всегда 200
+▸ Swagger / OpenAPI в NestJS
+@nestjs/swagger: @ApiProperty, @ApiOperation, @ApiBearerAuth. Автогенерация документации
+▸ Problem Details (RFC 7807)
+Стандартный формат ошибок: type, title, status, detail, instance. Лучше чем просто {error: string}
+▸ Rate Limiting basics
+@nestjs/throttler: 100 req/min глобально, строже на /auth. Защита от брутфорса
+
+ПРАКТИКА — что написать
+
+✦ Подключить @nestjs/swagger, добавить аннотации на все эндпоинты
+✦ Реализовать Problem Details формат во всех ошибках
+✦ Настроить @nestjs/throttler: 100/min глобально, 5/min на POST /auth/login
+✦ Написать README с примерами всех эндпоинтов API
+
+DELIVERABLE НЕДЕЛИ
+Swagger UI на /api/docs: все эндпоинты задокументированы. Rate limiting активен. Error format — RFC 7807
+
+НЕДЕЛЯ 24  Graceful Shutdown, Health Checks, первый деплой
+
+ТЕОРИЯ — что изучить
+
+▸ Graceful Shutdown
+SIGTERM → перестать принимать запросы → дождаться активных → закрыть пул → exit(0). Terminus
+▸ Health Checks: /health эндпоинт
+@nestjs/terminus: DatabaseHealthIndicator. Kubernetes/uptime-kuma будут пинговать
+▸ Environment Config management
+Joi schema для .env валидации. ConfigModule.forRoot({ validationSchema }). App не стартует без нужных переменных
+▸ Первый деплой на Railway / Render
+Procfile или nixpacks. DATABASE_URL как secret. PORT из env
+
+ПРАКТИКА — что написать
+
+✦ @nestjs/terminus: GET /health — проверяет подключение к PostgreSQL
+✦ Graceful shutdown: app.enableShutdownHooks() + onModuleDestroy в DatabaseModule
+✦ Joi валидация всех env переменных — приложение не стартует без DATABASE_URL и JWT_SECRET
+✦ Задеплоить на Railway: PostgreSQL addon + NestJS сервис. Живой URL
+
+DELIVERABLE НЕДЕЛИ
+OMNIA MVP ЗАДЕПЛОЕН. Живой URL, рабочий Swagger, health check зелёный. Это первая строчка в резюме
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Как реализовать RBAC в NestJS? Покажи Guard + декоратор.
+Q: Чем cursor-based pagination лучше offset? В каких случаях offset предпочтительнее?
+Q: Что такое graceful shutdown и почему это важно в Kubernetes?
+Q: Как организовать invite flow безопасно? Что хранить в БД?
+Q: Что такое RFC 7807 и зачем стандартизировать ошибки API?
+
+ 
+МЕСЯЦ 7
+Безопасность API
+Защищать нужно с первого дня. Уязвимости в продакшне — это катастрофа
+
+НЕДЕЛЯ 25  SQL Injection, XSS, CSRF
+
+ТЕОРИЯ — что изучить
+
+▸ SQL Injection: как работает и как защититься
+Параметризованные запросы vs конкатенация строк. Drizzle автоматически параметризует — понять почему
+▸ XSS: Reflected, Stored, DOM-based
+Stored XSS опасен для бэкенда — sanitize input. helmet.js: Content-Security-Policy
+▸ CSRF: механизм атаки
+SameSite=Strict на cookies. Double Submit Cookie паттерн. Почему API с JWT в header не уязвим
+▸ helmet.js: HTTP Security Headers
+X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security, CSP. Одна строка в NestJS
+
+ПРАКТИКА — что написать
+
+✦ Найти в коде Omnia все места где могла бы быть SQL-инъекция — убедиться что везде параметры
+✦ Добавить helmet() в main.ts Omnia
+✦ Написать тест: попытка SQL injection через email поле /auth/login
+✦ Настроить CORS: whitelist только фронтенд домен, не *
+
+DELIVERABLE НЕДЕЛИ
+Security audit Omnia: отчёт по всем уязвимостям + исправления + helmet + CORS настроен
+
+НЕДЕЛЯ 26  SSRF, Path Traversal, Secrets Management
+
+ТЕОРИЯ — что изучить
+
+▸ SSRF: Server-Side Request Forgery
+Сервер делает запрос к URL из user input → атака на внутреннюю сеть. Whitelist доменов, не blacklist
+▸ Path Traversal
+../../etc/passwd через file upload или path params. Всегда normalize + validate пути
+▸ Secrets Management
+Никогда не коммитить .env. .gitignore. AWS Secrets Manager / HashiCorp Vault / Railway secrets
+▸ Dependency Security: npm audit
+npm audit fix в CI. Dependabot для автоматических PR. SAST инструменты
+
+ПРАКТИКА — что написать
+
+✦ Если Omnia делает внешние HTTP запросы — добавить domain whitelist
+✦ npm audit на Omnia — исправить все critical и high уязвимости
+✦ Проверить .gitignore — убедиться что .env*, *.key не попадают в репо
+✦ Настроить GitHub Secret Scanning на репозитории
+
+DELIVERABLE НЕДЕЛИ
+npm audit clean (0 critical/high). .env в gitignore. SSRF защита документирована
+
+НЕДЕЛЯ 27  Rate Limiting, Brute Force Protection
+
+ТЕОРИЯ — что изучить
+
+▸ Rate Limiting алгоритмы: Token Bucket, Fixed Window, Sliding Window
+Fixed Window: проблема boundary burst. Sliding Window — точнее. Token Bucket — плавнее
+▸ Distributed Rate Limiting с Redis
+Throttle state в Redis — работает на нескольких экземплярах. В памяти — только на одном
+▸ Account Lockout после неудачных попыток
+5 неудачных попыток → временная блокировка. failed_login_attempts + locked_until в users
+▸ IP-based vs User-based rate limiting
+IP-based: защита от неаутентифицированных. User-based: защита аутентифицированных действий
+
+ПРАКТИКА — что написать
+
+✦ Добавить колонки failed_login_attempts, locked_until в users
+✦ При неудачном логине: инкрементировать. При 5 — заблокировать на 15 минут
+✦ При успешном логине: сбросить счётчик
+✦ Написать тест: 6 неудачных попыток → 423 Locked
+
+DELIVERABLE НЕДЕЛИ
+Account lockout в AuthService: полная логика + миграция + тесты
+
+НЕДЕЛЯ 28  Audit Log, Input Sanitization
+
+ТЕОРИЯ — что изучить
+
+▸ Audit Log: кто что когда изменил
+audit_logs(entity_type, entity_id, action, actor_id, old_value JSONB, new_value JSONB, created_at)
+▸ Sensitive Data в логах
+Никогда не логировать пароли, токены, PII. Маскировать email в логах. pino-redact
+▸ Input Sanitization vs Validation
+Validation: проверить формат. Sanitization: очистить опасный контент. Оба нужны. trim() минимум
+▸ Принцип наименьших привилегий в БД
+Отдельный пользователь БД с только SELECT/INSERT/UPDATE/DELETE — без DROP, TRUNCATE, CREATE
+
+ПРАКТИКА — что написать
+
+✦ Создать таблицу audit_logs в Omnia схеме
+✦ AuditLogService: логировать изменение роли в workspace, удаление участника
+✦ pino-redact: маскировать password, token в логах
+✦ Создать отдельного пользователя PostgreSQL omnia_app без DDL прав
+
+DELIVERABLE НЕДЕЛИ
+Audit log работает: все критичные действия в Omnia записываются. PII замаскировано в логах
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Как защититься от SQL injection? Почему параметризованные запросы работают?
+Q: Что такое SSRF? Приведи пример атаки и защиты.
+Q: Как реализовать distributed rate limiting? Почему in-memory недостаточно?
+Q: Что логировать нельзя никогда? Как замаскировать чувствительные данные в логах?
+Q: Что такое принцип наименьших привилегий применительно к БД?
+
+ 
+МЕСЯЦ 8
+Redis — кэширование и реальное время
+Производительность и возможности которых нет в PostgreSQL
+
+НЕДЕЛЯ 29  Redis basics + кэширование
+
+ТЕОРИЯ — что изучить
+
+▸ Redis data structures: String, Hash, List, Set, Sorted Set
+Каждый тип для своего кейса. Hash для объектов. Sorted Set для leaderboards и очередей приоритетов
+▸ TTL: Time To Live
+EXPIRE, EXPIREAT, TTL, PERSIST. Cache invalidation стратегии: TTL-based, event-based, manual
+▸ Cache Aside паттерн
+1) Проверить кэш 2) Miss → запрос к БД 3) Записать в кэш → вернуть. Thundering herd проблема
+▸ Cache Stampede / Thundering Herd
+Когда кэш протух — тысячи запросов одновременно к БД. Решения: mutex lock, probabilistic refresh, background revalidation
+
+ПРАКТИКА — что написать
+
+✦ Подключить ioredis в NestJS через CacheModule
+✦ CacheService: get/set/del/getOrSet(key, fn, ttl) — универсальный wrapper
+✦ Кэшировать GET /workspaces/:id — TTL 60 секунд
+✦ Инвалидировать кэш при PATCH /workspaces/:id
+✦ Логировать cache HIT / MISS в логах
+
+DELIVERABLE НЕДЕЛИ
+Кэширование воркспейсов: cache HIT/MISS в логах. GET /workspaces/:id работает из Redis на повторных запросах
+
+НЕДЕЛЯ 30  Redis для сессий и rate limiting
+
+ТЕОРИЯ — что изучить
+
+▸ Session store в Redis
+connect-redis или ioredis напрямую. Ключ: session:{sessionId}, значение: JSON. TTL = session lifetime
+▸ Distributed Rate Limiting с Redis
+INCR + EXPIRE паттерн. Lua-скрипт для атомарности. Sliding window через ZADD/ZREMRANGEBYSCORE
+▸ Refresh Token в Redis
+Альтернатива хранению в PostgreSQL. redis.set(`rt:{userId}:{tokenId}`, tokenHash, 'EX', 604800)
+▸ Redis Keyspace Notifications
+Подписаться на expiry events — полезно для TTL-based бизнес-логики
+
+ПРАКТИКА — что написать
+
+✦ Перенести refresh tokens из PostgreSQL таблицы в Redis (или добавить Redis как второй слой)
+✦ Rate limiting через Redis: 100 запросов/минуту на IP — работает на нескольких процессах
+✦ Redis Sorted Set: хранить последние 10 действий пользователя для audit timeline
+✦ TTL на invite tokens — после истечения автоматически исчезают из Redis
+
+DELIVERABLE НЕДЕЛИ
+Rate limiting через Redis: протестировать ab -n 200 -c 10 — видеть 429 после лимита. Refresh tokens в Redis
+
+НЕДЕЛЯ 31  Pub/Sub и real-time notifications
+
+ТЕОРИЯ — что изучить
+
+▸ Redis Pub/Sub
+PUBLISH channel message. SUBSCRIBE channel. Fan-out: один publisher → много subscribers
+▸ Ограничения Pub/Sub: fire-and-forget
+Нет истории, нет очереди, нет ACK. Если subscriber offline — пропустит. Для надёжности — BullMQ
+▸ Server-Sent Events (SSE) в NestJS
+EventSource на фронтенде. @Sse() декоратор. Observable stream. Дешевле WebSocket для однонаправленного потока
+▸ WebSocket в NestJS: @nestjs/websockets
+@WebSocketGateway, @SubscribeMessage, @MessageBody. Socket.io или native WS
+
+ПРАКТИКА — что написать
+
+✦ Redis Pub/Sub: при добавлении участника в workspace → publish событие 'member.added'
+✦ SSE эндпоинт: GET /workspaces/:id/events — клиент получает real-time уведомления
+✦ Subscribe в NestJS на Redis channel → форвардить в SSE stream
+✦ Тест: в двух вкладках браузера — в одной добавить участника, в другой получить SSE событие
+
+DELIVERABLE НЕДЕЛИ
+Real-time: добавление участника в workspace мгновенно отображается через SSE без polling
+
+НЕДЕЛЯ 32  Redis persistence и production настройки
+
+ТЕОРИЯ — что изучить
+
+▸ RDB vs AOF: стратегии персистентности
+RDB: снапшоты. AOF: лог каждой операции. AOF + RDB hybrid — рекомендуется для продакшна
+▸ Redis memory management: maxmemory-policy
+allkeys-lru, volatile-lru, noeviction. Для кэша — allkeys-lru. Для очередей — noeviction
+▸ Redis Sentinel vs Cluster
+Sentinel: HA для одной master ноды. Cluster: шардирование. Для малых проектов — Sentinel
+▸ Мониторинг Redis: INFO, MONITOR, redis-cli --stat
+Memory usage, connected clients, ops/sec, hit rate. Целевой hit rate > 90%
+
+ПРАКТИКА — что написать
+
+✦ Настроить maxmemory 256mb + maxmemory-policy allkeys-lru в Redis конфиге
+✦ redis-cli INFO stats: замерить keyspace_hits / keyspace_misses — вычислить hit rate
+✦ Написать скрипт, который прогревает кэш при старте приложения (preload popular workspaces)
+✦ Docker Compose: Redis с volume для персистентности данных
+
+DELIVERABLE НЕДЕЛИ
+Redis в Docker Compose с персистентностью + мониторинг hit rate. Документированные настройки для prod
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Объясни Cache Aside паттерн. Что такое cache stampede?
+Q: Чем Redis Pub/Sub отличается от BullMQ? Когда что использовать?
+Q: Как реализовать distributed rate limiting через Redis?
+Q: Какую maxmemory-policy ставить для кэша? Для очередей задач?
+Q: Как измерить эффективность кэша? Что такое hit rate и какой считается хорошим?
+
+ 
+МЕСЯЦ 9
+BullMQ — очереди задач
+Асинхронная обработка: email, AI, тяжёлые операции в фоне
+
+НЕДЕЛЯ 33  BullMQ basics: Queues и Workers
+
+ТЕОРИЯ — что изучить
+
+▸ Зачем очереди: отделить HTTP от тяжёлой работы
+HTTP ответ за <100ms. Email отправка — 500ms+. Вынести в фон → быстрый API + надёжная обработка
+▸ BullMQ: Queue, Worker, Job
+Queue.add() добавляет задачу. Worker.process() обрабатывает. Job: id, data, attempts, opts
+▸ Job options: delay, priority, attempts, backoff
+delay: отложить отправку. backoff: exponential при retry. priority: важные задачи вперёд
+▸ Concurrency и rate limiting Workers
+worker concurrency: 5 — обрабатывать 5 задач параллельно. limiter: не более 10 jobs/sec к внешнему API
+
+ПРАКТИКА — что написать
+
+✦ Установить bullmq, создать EmailQueue в Omnia
+✦ Job: sendInviteEmail(to, workspaceId, inviteToken, inviterName)
+✦ Worker: имитировать отправку через console.log + задержку 500ms
+✦ При POST /workspaces/:id/invite → добавить job в EmailQueue вместо синхронной отправки
+✦ Bull Board UI: подключить @bull-board/nestjs для мониторинга очередей
+
+DELIVERABLE НЕДЕЛИ
+EmailQueue: invite email уходит асинхронно. Bull Board на /admin/queues — видны jobs, статусы, ретраи
+
+НЕДЕЛЯ 34  Retries, Dead Letter Queue, мониторинг
+
+ТЕОРИЯ — что изучить
+
+▸ Retry стратегии: fixed, exponential backoff, jitter
+Exponential с jitter — стандарт: 2^attempt * random(0.5, 1.5) секунд. Без jitter — thundering herd
+▸ Dead Letter Queue (DLQ)
+После maxAttempts — job в failed состоянии. Отдельная очередь для ручного разбора. Алерт на DLQ рост
+▸ Idempotency в Workers
+Worker может запуститься дважды для одной задачи. Проверять sent_at в БД перед отправкой
+▸ Job Events: completed, failed, stalled
+worker.on('failed', (job, err) => log). Stalled: worker умер не завершив job — автоматически requeue
+
+ПРАКТИКА — что написать
+
+✦ Настроить exponential backoff: attempts: 3, backoff: { type: 'exponential', delay: 2000 }
+✦ Симулировать failure в Worker: random throw. Проверить retry в Bull Board
+✦ После 3 попыток — job в failed. Добавить webhook-алерт (или просто лог) при failed
+✦ Idempotency: добавить email_jobs(job_id, status, sent_at) таблицу — проверять перед отправкой
+
+DELIVERABLE НЕДЕЛИ
+Retry с exponential backoff. Idempotent Worker. Failed jobs видны в Bull Board с ошибкой
+
+НЕДЕЛЯ 35  AI Queue для Omnia
+
+ТЕОРИЯ — что изучить
+
+▸ AI операции как async jobs
+LLM вызов: 2-30 секунд. Никогда не в HTTP request. Queue → Worker → WebSocket/SSE уведомление о готовности
+▸ Job Progress: reportProgress()
+job.updateProgress(50) → клиент получает обновление через event. Для долгих операций
+▸ Priority Queue для AI
+Платные пользователи — приоритет выше. priority: 1 (высший) vs priority: 10 (низший) в BullMQ
+▸ Rate limiting к OpenAI API
+limiter: { max: 10, duration: 1000 } в Worker — не превышать 10 req/sec к OpenAI
+
+ПРАКТИКА — что написать
+
+✦ AIQueue: job generateWorkspaceSummary(workspaceId, prompt)
+✦ Worker: имитировать AI вызов (setTimeout 2-5 сек), reportProgress(50) в середине
+✦ Priority: premium_user → priority 1, free_user → priority 5
+✦ SSE: клиент подписывается на /workspaces/:id/ai-stream, получает progress обновления
+✦ Хранить результат в workspaces.ai_summary JSONB после завершения
+
+DELIVERABLE НЕДЕЛИ
+AI Pipeline: запрос → AIQueue → Worker с progress → SSE уведомление → результат в БД. Full cycle demo
+
+НЕДЕЛЯ 36  Cron Jobs и Scheduled Tasks
+
+ТЕОРИЯ — что изучить
+
+▸ @nestjs/schedule: Cron декораторы
+@Cron('0 9 * * *') — каждый день в 9:00. @Interval(60000) — каждые 60 сек. Cron синтаксис
+▸ Distributed Cron: проблема нескольких инстансов
+Если 3 инстанса — cron запустится 3 раза. Redis lock: SETNX + TTL перед запуском задачи
+▸ Cleanup Jobs: удаление старых данных
+Мягко удалённые записи → физически удалить через 30 дней. Просроченные invite tokens
+▸ Мониторинг Cron Jobs
+Логировать start/end/duration. Алерт если job не запускался X часов. Healthcheck.io / Cronitor
+
+ПРАКТИКА — что написать
+
+✦ Cron: каждую ночь в 2:00 — удалить invite_tokens где expires_at < NOW()
+✦ Cron: каждый день — считать статистику воркспейсов в workspace_stats таблицу
+✦ Distributed lock через Redis: SETNX перед запуском cleanup — второй инстанс пропускает
+✦ Логировать каждый cron run: start_time, end_time, rows_affected
+
+DELIVERABLE НЕДЕЛИ
+2 cron jobs в Omnia: cleanup просроченных токенов + daily stats. Redis distributed lock. Логирование выполнения
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Зачем нужны очереди? Что произойдёт без них если внешний сервис лежит?
+Q: Что такое idempotency в контексте Worker? Почему это важно?
+Q: Как реализовать exponential backoff? Зачем нужен jitter?
+Q: Как решить проблему cron job на нескольких инстансах?
+Q: Как обеспечить прогресс долгой операции (AI) на клиенте?
+
+ 
+МЕСЯЦ 10
+Тестирование
+Тесты — это документация которая не врёт
+
+НЕДЕЛЯ 37  Unit Tests с Jest
+
+ТЕОРИЯ — что изучить
+
+▸ Пирамида тестирования: unit → integration → e2e
+70% unit: быстрые, изолированные. 20% integration: с реальной БД. 10% e2e: критичные флоу
+▸ Mocking в Jest: jest.fn(), jest.spyOn(), jest.mock()
+Mock зависимостей чтобы тестировать логику в изоляции. Разница mock vs stub vs spy
+▸ Testing NestJS Services с TestingModule
+Test.createTestingModule({ providers: [...] }). Подменять реальные провайдеры на моки
+▸ Coverage: lines, branches, functions
+Istanbul/V8. Цель: 80%+. Не гонись за 100% — тесты ради процента бесполезны
+
+ПРАКТИКА — что написать
+
+✦ Unit тест AuthService.login(): 4 кейса — success, wrong password, user not found, locked account
+✦ Unit тест WorkspacesService.addMember(): success, already member, workspace not found
+✦ Мокнуть DrizzleService, Redis, ConfigService — тест только логику
+✦ Jest coverage: npm run test:cov — добиться >80% на AuthService и WorkspacesService
+
+DELIVERABLE НЕДЕЛИ
+20+ unit тестов на AuthService + WorkspacesService. Coverage >80% на этих файлах. CI запускает тесты
+
+НЕДЕЛЯ 38  Integration Tests с реальной БД
+
+ТЕОРИЯ — что изучить
+
+▸ Integration тесты: реальная БД, реальный Redis
+Тестировать что SQL правильный, что транзакции работают. Нельзя замокать БД и назвать это integration
+▸ Transaction Rollback паттерн
+beforeEach: начать транзакцию. afterEach: ROLLBACK. Тесты изолированы, БД остаётся чистой
+▸ Test Containers (опционально)
+testcontainers-node: поднять PostgreSQL в Docker для тестов. Изоляция на уровне CI
+▸ Fixtures и Factory паттерн
+userFactory({ email: 'test@test.com' }) — создать тестовые данные декларативно
+
+ПРАКТИКА — что написать
+
+✦ Настроить test database (DATABASE_URL_TEST) с transaction rollback в beforeEach/afterEach
+✦ Integration тест: createWorkspace → проверить что workspace + owner member созданы в БД
+✦ Integration тест: inviteUser → принять инвайт → проверить membership в БД
+✦ userFactory() + workspaceFactory() — переиспользовать в тестах
+
+DELIVERABLE НЕДЕЛИ
+10+ integration тестов покрывают критичные флоу Omnia. Работают на test DB изолированно
+
+НЕДЕЛЯ 39  E2E тесты с Supertest
+
+ТЕОРИЯ — что изучить
+
+▸ E2E тесты: тестировать API как клиент
+Supertest поднимает HTTP сервер, делает реальные запросы. Тест всего стека: NestJS → БД
+▸ Auth в E2E тестах
+Создать test user, получить JWT, передавать в каждый запрос. Хелпер loginAs(user)
+▸ Что покрывать E2E
+Только критичные happy path флоу: register/login, create workspace, invite, join. Не тестировать edge cases — это для unit
+▸ E2E в CI: порядок запуска
+unit → integration → e2e. E2E требует поднятого PostgreSQL и Redis в GitHub Actions
+
+ПРАКТИКА — что написать
+
+✦ E2E тест: полный auth flow — register → login → get /users/me → refresh → logout
+✦ E2E тест: workspace flow — create → invite → join (другой пользователь) → list members
+✦ Хелпер createTestUser() + loginAs() для DRY в E2E тестах
+✦ GitHub Actions: запускать все тесты на каждый PR с PostgreSQL service container
+
+DELIVERABLE НЕДЕЛИ
+E2E тесты: auth flow + workspace flow. CI pipeline: unit+integration+e2e на каждый PR. Всё зелёное
+
+НЕДЕЛЯ 40  Нагрузочное тестирование с k6
+
+ТЕОРИЯ — что изучить
+
+▸ k6: скриптовое нагрузочное тестирование
+JavaScript сценарии. vus (virtual users), duration, thresholds. Реалистичные сценарии пользователей
+▸ Метрики: p95, p99 latency, RPS, error rate
+p95 < 200ms — стандарт. p99 < 1000ms. Error rate < 1%. Throughput: сколько RPS выдерживает сервис
+▸ Bottleneck detection
+Slow query в PostgreSQL? Connection pool исчерпан? Redis не успевает? CPU? IO? Как найти узкое место
+▸ Baseline vs Stress vs Spike
+Baseline: обычная нагрузка. Stress: максимальная. Spike: резкий всплеск. Каждый тест показывает разное
+
+ПРАКТИКА — что написать
+
+✦ k6 скрипт: 50 VU, 2 минуты, случайный GET /workspaces/:id — замерить p95 latency
+✦ Stress test: постепенно увеличивать до 200 VU — найти точку деградации
+✦ Профилировать PostgreSQL во время нагрузки: pg_stat_statements — найти медленные запросы
+✦ Сравнить latency с кэшем Redis и без — задокументировать разницу
+
+DELIVERABLE НЕДЕЛИ
+k6 отчёт: p95 latency API Omnia + найденное узкое место + исправление + повторный тест после оптимизации
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Объясни пирамиду тестирования. Почему не 100% E2E?
+Q: Как изолировать integration тесты? Что такое transaction rollback паттерн?
+Q: Что тестировать unit, что integration, что E2E? Приведи примеры из Omnia.
+Q: Что такое p95 latency? Чем отличается от среднего?
+Q: Как найти N+1 проблему через нагрузочное тестирование?
+
+ 
+МЕСЯЦ 11
+Docker и Linux
+Локально работает — в проде тоже. Контейнеризация как стандарт
+
+НЕДЕЛЯ 41  Docker: Images, Containers, Layers
+
+ТЕОРИЯ — что изучить
+
+▸ Docker Image vs Container
+Image — неизменяемый слоёный снапшот. Container — запущенный процесс из образа. Как слои кэшируются
+▸ Dockerfile: многоступенчатая сборка
+FROM node:20-alpine AS builder → FROM node:20-alpine AS runner. Копировать только dist + node_modules prod
+▸ Оптимизация образа: .dockerignore, slim base images
+node:20-alpine vs node:20 — 180mb vs 900mb. .dockerignore: node_modules, .git, coverage
+▸ Docker Layer кэширование
+COPY package*.json . → RUN npm ci → COPY . . — зависимости кэшируются если package.json не менялся
+
+ПРАКТИКА — что написать
+
+✦ Написать Dockerfile для Omnia: multi-stage build, alpine base, non-root user
+✦ docker build + docker run omnia:latest — приложение работает в контейнере
+✦ Сравнить размер образа: без оптимизации vs multi-stage. Задокументировать разницу
+✦ .dockerignore: убедиться что node_modules и .env не попадают в образ
+
+DELIVERABLE НЕДЕЛИ
+Dockerfile для Omnia: multi-stage, alpine, < 300MB образ, non-root user. docker build проходит за < 2 мин
+
+НЕДЕЛЯ 42  Docker Compose: полный стек
+
+ТЕОРИЯ — что изучить
+
+▸ Docker Compose: оркестрация нескольких сервисов
+services: api, postgres, redis. depends_on, healthcheck, networks, volumes
+▸ Volumes: персистентность данных
+Named volume для PostgreSQL data — данные переживают container restart. Bind mount для разработки
+▸ Networks: изоляция сервисов
+Кастомная bridge network: сервисы видят друг друга по имени (postgres, redis). Наружу только нужные порты
+▸ Environment и secrets в Compose
+env_file: .env — для разработки. В проде — Docker Secrets или внешний secrets manager
+
+ПРАКТИКА — что написать
+
+✦ docker-compose.yml: postgres + redis + omnia-api + pgAdmin
+✦ Health check на postgres: pg_isready. api depends_on postgres healthcheck
+✦ Отдельный docker-compose.test.yml для тестов: ephemeral БД, запуск тестов и exit
+✦ docker compose up --build — весь стек поднимается одной командой
+
+DELIVERABLE НЕДЕЛИ
+docker-compose.yml: полный Omnia стек. docker compose up — приложение готово к работе. Данные персистентны
+
+НЕДЕЛЯ 43  Linux для бэкендера
+
+ТЕОРИЯ — что изучить
+
+▸ Процессы и сигналы: SIGTERM, SIGKILL, SIGHUP
+SIGTERM: попроси завершиться. SIGKILL: убей немедленно. NestJS ловит SIGTERM для graceful shutdown
+▸ Файловая система, permissions, chmod/chown
+rwx для user/group/other. 755 для бинарей, 644 для файлов. Non-root в контейнерах
+▸ Networking: netstat, lsof, curl, wget
+netstat -tulpn: кто слушает порты. lsof -i :3000: что занимает порт. tcpdump базово
+▸ systemd: юниты, journalctl, статус сервисов
+systemctl start/stop/status/enable. journalctl -u omnia -f — логи сервиса в реальном времени
+
+ПРАКТИКА — что написать
+
+✦ SSH в удалённый сервер (Railway/VPS). Базовые команды уверенно
+✦ lsof + netstat: найти что слушает порт 5432 (PostgreSQL)
+✦ Написать systemd unit для Omnia (для случая без Docker)
+✦ top, htop, free -h: мониторинг ресурсов во время нагрузочного теста
+
+DELIVERABLE НЕДЕЛИ
+Linux cheatsheet для Omnia: 20 команд которые используешь каждый день с примерами
+
+НЕДЕЛЯ 44  CI/CD с GitHub Actions
+
+ТЕОРИЯ — что изучить
+
+▸ CI pipeline: lint → test → build → docker push
+Каждый PR прогоняет весь pipeline. Merge только если всё зелёное. GitHub Actions YAML синтаксис
+▸ GitHub Secrets: безопасное хранение credentials
+secrets.DATABASE_URL, secrets.JWT_SECRET — никогда не в коде. GITHUB_TOKEN встроен
+▸ Docker Hub / GitHub Container Registry
+ghcr.io/username/omnia:latest. Теги: sha, branch, semver. latest = последний main
+▸ CD: auto-deploy на Railway/Render при push в main
+Webhook от GitHub → Railway перезапускает с новым образом. Zero downtime с rolling deploy
+
+ПРАКТИКА — что написать
+
+✦ .github/workflows/ci.yml: lint + test (с postgres service) на каждый PR
+✦ .github/workflows/deploy.yml: build + push to ghcr.io + deploy to Railway на push в main
+✦ GitHub Secrets: добавить DATABASE_URL, JWT_SECRET, RAILWAY_TOKEN
+✦ Сделать намеренно сломанный PR — убедиться что CI блокирует merge
+
+DELIVERABLE НЕДЕЛИ
+CI/CD pipeline: PR → автотесты. Merge в main → автодеплой. Omnia обновляется за < 5 мин после push
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Объясни multi-stage Docker build. Почему это важно?
+Q: Как работают Docker volumes? Что будет с данными PostgreSQL при docker compose down?
+Q: Что такое SIGTERM? Как NestJS должен его обрабатывать?
+Q: Опиши твой CI/CD pipeline. Что происходит на каждом шаге?
+Q: Как хранить секреты в CI/CD? Почему нельзя коммитить .env?
+
+ 
+МЕСЯЦ 12
+Production Engineering
+Финальный месяц: мониторинг, наблюдаемость, production-готовность
+
+НЕДЕЛЯ 45  Nginx и Reverse Proxy
+
+ТЕОРИЯ — что изучить
+
+▸ Nginx как reverse proxy
+Nginx принимает → передаёт в NestJS. SSL termination на Nginx. upstream block. proxy_pass
+▸ Nginx: rate limiting, gzip, static files
+limit_req_zone для глобального rate limiting. gzip on для text/json. static assets напрямую без Node
+▸ SSL/TLS с Let's Encrypt + Certbot
+certbot --nginx автоматически настраивает HTTPS. Auto-renewal через cron. HSTS header
+▸ Load Balancing: upstream с несколькими инстансами
+upstream backend { server app1:3000; server app2:3000; } round-robin по умолчанию. Health checks
+
+ПРАКТИКА — что написать
+
+✦ nginx.conf для Omnia: proxy_pass на NestJS + gzip + security headers
+✦ Let's Encrypt сертификат для домена (если есть VPS) или изучить конфиг локально
+✦ Stress test через Nginx vs напрямую — измерить overhead
+✦ Docker Compose: добавить nginx сервис перед api
+
+DELIVERABLE НЕДЕЛИ
+Nginx конфиг для Omnia: HTTPS, gzip, security headers, rate limiting. В docker-compose.yml
+
+НЕДЕЛЯ 46  Структурированное логирование с Pino
+
+ТЕОРИЯ — что изучить
+
+▸ Структурированные логи: JSON vs plain text
+JSON логи машиночитаемы. {timestamp, level, message, requestId, userId, duration}. Grafana Loki парсит
+▸ Pino в NestJS: nestjs-pino
+Самый быстрый логгер для Node. Асинхронная запись. Redaction чувствительных полей. Pretty print для dev
+▸ Request ID: correlation через запросы
+X-Request-ID header → добавить во все логи → найти все логи одного запроса. AsyncLocalStorage
+▸ Log Levels: debug/info/warn/error
+В проде — info и выше. В dev — debug. Динамическое изменение уровня без рестарта
+
+ПРАКТИКА — что написать
+
+✦ Заменить NestJS default logger на nestjs-pino
+✦ Каждый запрос логирует: requestId, method, path, statusCode, duration, userId
+✦ pino-redact: маскировать password, token, authorization в логах
+✦ Локально: pino-pretty для читаемого вывода. В Docker: plain JSON
+
+DELIVERABLE НЕДЕЛИ
+Структурированные JSON логи в Omnia. Каждый запрос трейсируется через requestId. Sensitive данные замаскированы
+
+НЕДЕЛЯ 47  Prometheus + Grafana — метрики
+
+ТЕОРИЯ — что изучить
+
+▸ Метрики: Counter, Gauge, Histogram, Summary
+Counter: сколько запросов. Gauge: текущий размер очереди. Histogram: распределение latency. p95/p99
+▸ @willsoto/nestjs-prometheus
+Expose /metrics эндпоинт для Prometheus scraping. Кастомные метрики для бизнес-логики
+▸ Grafana dashboards
+PromQL запросы для графиков. rate(), histogram_quantile(). Стандартный Node.js dashboard из Grafana Labs
+▸ Alerting: правила и каналы
+Алерт: error rate > 5% за 5 минут → Slack/Telegram. p95 latency > 1s → PagerDuty (или просто email)
+
+ПРАКТИКА — что написать
+
+✦ Подключить nestjs-prometheus: http_requests_total, http_request_duration_seconds
+✦ Кастомная метрика: workspace_members_total Gauge (обновлять при add/remove member)
+✦ Docker Compose: добавить prometheus + grafana сервисы
+✦ Grafana: импортировать Node.js dashboard (ID: 11159) + создать 1 кастомный алерт
+
+DELIVERABLE НЕДЕЛИ
+Grafana dashboard для Omnia: RPS, p95 latency, error rate, active connections. Алерт на error rate
+
+НЕДЕЛЯ 48  OpenTelemetry, финальный Review, интервью
+
+ТЕОРИЯ — что изучить
+
+▸ OpenTelemetry: traces, metrics, logs — единый стандарт
+Distributed tracing: trace_id через сервисы. Span: одна операция. Jaeger / Tempo для визуализации
+▸ Distributed Tracing в NestJS
+@opentelemetry/sdk-node auto-instrumentation. HTTP, PostgreSQL, Redis spans автоматически
+▸ SLI / SLO / SLA
+SLI: фактическая метрика (p99 latency). SLO: цель (99.9% запросов < 1s). SLA: контракт с клиентом
+▸ Production Readiness Checklist
+Health check, graceful shutdown, structured logs, metrics, alerts, CI/CD, secrets management, rate limiting, HTTPS
+
+ПРАКТИКА — что написать
+
+✦ Подключить OpenTelemetry auto-instrumentation — видеть spans в Jaeger
+✦ Пройти Production Readiness Checklist для Omnia — заполнить все пункты
+✦ Подготовить portfolio: README с архитектурой, скриншоты Grafana, ссылка на деплой
+✦ 5 mock технических интервью: объяснить любой аспект Omnia без заглядывания в код
+
+DELIVERABLE НЕДЕЛИ
+OMNIA PRODUCTION-READY: OTel tracing, Grafana метрики, HTTPS, CI/CD, все чеклисты выполнены. Готов к интервью
+
+💬  ЧТО СПРОСЯТ НА ИНТЕРВЬЮ
+Q: Что такое structured logging? Почему JSON логи лучше для продакшна?
+Q: Объясни разницу между metrics, logs и traces (three pillars of observability).
+Q: Что такое SLO? Как бы ты определил SLO для Omnia?
+Q: Пройди Production Readiness Checklist своего проекта.
+Q: Расскажи об архитектуре Omnia: почему принял такие решения?
+
+ 
