@@ -7,7 +7,7 @@
 |---|---|
 | **Стек** | TypeScript · NestJS · PostgreSQL · Drizzle · Redis · BullMQ · Docker · OpenAI/pgvector |
 | **Проект** | Omnia — AI-native SaaS агент-платформа |
-| **Цель** | Backend Middle / Fullstack — международный рынок |
+| **Цель** | Backend Middle / Fullstack |
 | **Бюджет** | 25–30 часов/неделю |
 | **Акцент** | 30% SQL · 25% NestJS · 15% Docker · 10% AI/LLM · 10% Redis/BullMQ · 5% Security · 5% Testing |
 
