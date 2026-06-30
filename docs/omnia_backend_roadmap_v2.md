@@ -42,27 +42,27 @@
 
 #### Теория
 
-- [ ] **HTTP: Request / Response / Headers / Status Codes**
+- [x] **HTTP: Request / Response / Headers / Status Codes**
 Что значит 200, 201, 400, 401, 403, 404, 500 — и когда что возвращать
 
-- [ ] **HTTP-методы: GET / POST / PUT / PATCH / DELETE**
+- [x] **HTTP-методы: GET / POST / PUT / PATCH / DELETE**
 Семантика идемпотентности. Разница PUT vs PATCH на реальных примерах
 
-- [ ] **URL, Path Params, Query Params**
+- [x] **URL, Path Params, Query Params**
 `/users/:id` vs `/users?role=admin` — когда что использовать
 
-- [ ] **DNS, IP, TCP — путь запроса**
+- [x] **DNS, IP, TCP — путь запроса**
 Понять на уровне схемы: DNS resolve → TCP connect → HTTP request → response
 
-- [ ] **HTTPS, TLS, сертификаты**
+- [x] **HTTPS, TLS, сертификаты**
 Что такое handshake, почему HTTP в 2026 — моветон
 
 #### Практика
 
-- [ ] Postman: сделать 20 запросов на JSONPlaceholder, httpbin.org, reqres.in
-- [ ] Записать в Postman коллекцию: каждый метод с примером header и body
-- [ ] Через браузер DevTools изучить реальный TLS-сертификат любого сайта
-- [ ] Нарисовать на бумаге путь запроса от браузера до сервера
+- [x] Postman: сделать 20 запросов на JSONPlaceholder, httpbin.org, reqres.in
+- [x] Записать в Postman коллекцию: каждый метод с примером header и body
+- [x] Через браузер DevTools изучить реальный TLS-сертификат любого сайта
+- [x] Нарисовать на бумаге путь запроса от браузера до сервера
 
 > [!IMPORTANT]
 > **Deliverable недели**

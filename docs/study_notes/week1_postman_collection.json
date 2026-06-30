@@ -1,0 +1,588 @@
+{
+	"info": {
+		"_postman_id": "a98dfb0b-cd65-4f40-84a1-5cf5d78a9c8f",
+		"name": "Week 1 - HTTP & Networks (Omnia Backend Roadmap)",
+		"description": "Эталонная коллекция запросов для изучения HTTP-протокола. Включает запросы к локальному TCP-серверу, JSONPlaceholder и Httpbin.org для демонстрации статусов, методов, заголовков и параметров.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Local TCP Server (localhost:3000)",
+			"item": [
+				{
+					"name": "GET Root (200 OK)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								""
+							]
+						},
+						"description": "Запрос корня локального TCP-сервера. Должен вернуть 200 OK и JSON с информацией о сервисе."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Health (200 OK)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"health"
+							]
+						},
+						"description": "Проверка статуса здоровья (healthcheck) сервера."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Agent (201 Created)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Support Agent\",\n    \"model\": \"gpt-4\",\n    \"temperature\": 0.5\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/agents",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"agents"
+							]
+						},
+						"description": "Создание нового агента. Сервер должен вернуть статус 201 Created, эхо тела запроса и заголовок Location: /agents/1."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Agent - Empty Body (400 Bad Request)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/agents",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"agents"
+							]
+						},
+						"description": "Попытка создать агента без тела запроса. Сервер должен вернуть 400 Bad Request."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Agent - Invalid JSON (400 Bad Request)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Support Agent\"\n    \"broken_json_here\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/agents",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"agents"
+							]
+						},
+						"description": "Отправка сломанного JSON. Наш TCP-сервер должен безопасно перехватить ошибку парсинга и вернуть 400 Bad Request."
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Agent 1 (204 No Content)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/agents/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"agents",
+								"1"
+							]
+						},
+						"description": "Успешное удаление агента. Сервер должен вернуть статус 204 No Content без тела и без Content-Type."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Agent 999 (404 Not Found)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/agents/999",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"agents",
+								"999"
+							]
+						},
+						"description": "Запрос несуществующего агента. Сервер возвращает 404 Not Found."
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Agent 999 (405 Method Not Allowed)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/agents/999",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"agents",
+								"999"
+							]
+						},
+						"description": "Попытка отправить DELETE на адрес, который поддерживает только GET. Сервер должен вернуть 405 Method Not Allowed и заголовок Allow: GET."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. JSONPlaceholder API (REST Специфика)",
+			"item": [
+				{
+					"name": "GET All Posts (200 OK)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://jsonplaceholder.typicode.com/posts",
+							"protocol": "https",
+							"host": [
+								"jsonplaceholder",
+								"typicode",
+								"com"
+							],
+							"path": [
+								"posts"
+							]
+						},
+						"description": "Получение списка всех постов."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Single Post (200 OK - Path Param)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://jsonplaceholder.typicode.com/posts/1",
+							"protocol": "https",
+							"host": [
+								"jsonplaceholder",
+								"typicode",
+								"com"
+							],
+							"path": [
+								"posts",
+								"1"
+							]
+						},
+						"description": "Получение одного конкретного поста по его ID в пути (Path Parameter)."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Filtered Posts (200 OK - Query Param)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://jsonplaceholder.typicode.com/posts?userId=1",
+							"protocol": "https",
+							"host": [
+								"jsonplaceholder",
+								"typicode",
+								"com"
+							],
+							"path": [
+								"posts"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Фильтрация списка постов по конкретному пользователю через Query-параметр."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Post (201 Created)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json; charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Omnia Backend Study\",\n    \"body\": \"Mastering HTTP, DNS, TCP and TLS protocol features.\",\n    \"userId\": 1\n}"
+						},
+						"url": {
+							"raw": "https://jsonplaceholder.typicode.com/posts",
+							"protocol": "https",
+							"host": [
+								"jsonplaceholder",
+								"typicode",
+								"com"
+							],
+							"path": [
+								"posts"
+							]
+						},
+						"description": "Создание нового поста. Отправка POST-запроса с JSON-телом."
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Update Post (200 OK - Full Update)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json; charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"title\": \"Updated Title Only\",\n    \"userId\": 1\n}"
+						},
+						"url": {
+							"raw": "https://jsonplaceholder.typicode.com/posts/1",
+							"protocol": "https",
+							"host": [
+								"jsonplaceholder",
+								"typicode",
+								"com"
+							],
+							"path": [
+								"posts",
+								"1"
+							]
+						},
+						"description": "Полное обновление ресурса методом PUT. Внимание: по спецификации опущенное поле body сотрется или обнулится (JSONPlaceholder симулирует это в ответе)."
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH Update Post (200 OK - Partial)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json; charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Title Only\"\n}"
+						},
+						"url": {
+							"raw": "https://jsonplaceholder.typicode.com/posts/1",
+							"protocol": "https",
+							"host": [
+								"jsonplaceholder",
+								"typicode",
+								"com"
+							],
+							"path": [
+								"posts",
+								"1"
+							]
+						},
+						"description": "Частичное обновление ресурса методом PATCH. Изменяется только поле title, остальные остаются на сервере без изменений."
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Post (200 OK / 204 No Content)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://jsonplaceholder.typicode.com/posts/1",
+							"protocol": "https",
+							"host": [
+								"jsonplaceholder",
+								"typicode",
+								"com"
+							],
+							"path": [
+								"posts",
+								"1"
+							]
+						},
+						"description": "Удаление поста по ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Httpbin.org (Дебаг Сети и Статусов)",
+			"item": [
+				{
+					"name": "GET IP Address",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://httpbin.org/ip",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"ip"
+							]
+						},
+						"description": "Возвращает IP-адрес клиента (твоего компьютера), с которого пришел запрос."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Request Headers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Custom-Header",
+								"value": "MyValue-123",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://httpbin.org/headers",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"headers"
+							]
+						},
+						"description": "Возвращает заголовки запроса, полученные сервером. Полезно для дебага того, что отправляет клиент."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Simulate 404 Not Found",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://httpbin.org/status/404",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"status",
+								"404"
+							]
+						},
+						"description": "Служебный эндпоинт httpbin для симуляции ответа 404 Not Found."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Simulate 401 Unauthorized",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://httpbin.org/status/401",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"status",
+								"401"
+							]
+						},
+						"description": "Симуляция ответа 401. Обрати внимание на заголовок WWW-Authenticate в ответе."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Simulate 403 Forbidden",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://httpbin.org/status/403",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"status",
+								"403"
+							]
+						},
+						"description": "Симуляция ответа 403 Forbidden."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Simulate 500 Internal Error",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://httpbin.org/status/500",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"status",
+								"500"
+							]
+						},
+						"description": "Симуляция падения сервера со статусом 500."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Simulate 429 Rate Limit",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://httpbin.org/status/429",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"status",
+								"429"
+							]
+						},
+						"description": "Симуляция ответа 429 Too Many Requests."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Simulate Redirects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://httpbin.org/redirect/3",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"redirect",
+								"3"
+							]
+						},
+						"description": "Инициирует цепочку из 3 перенаправлений (302 Found) и в итоге перенаправляет на эндпоинт /anything."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Slow Response (Delay)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://httpbin.org/delay/3",
+							"protocol": "https",
+							"host": [
+								"httpbin",
+								"org"
+							],
+							"path": [
+								"delay",
+								"3"
+							]
+						},
+						"description": "Сервер задержит ответ ровно на 3 секунды. Позволяет проверить поведение тайм-аутов на клиенте."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
