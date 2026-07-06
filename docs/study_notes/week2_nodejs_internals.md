@@ -25,6 +25,8 @@
 
 Node.js — это **рантайм** для JavaScript вне браузера. Внутри — движок **V8** (тот же что в Chrome) + библиотека **libuv** (написана на C), которая даёт доступ к файловой системе, сети, потокам ОС. Node.js **однопоточный** для твоего JS-кода, но **не однопоточный** внутри — libuv использует пул потоков (4 по умолчанию) для блокирующих операций (чтение файлов, DNS, crypto). Это позволяет обрабатывать тысячи одновременных соединений одним процессом.
 
+> **Важно:** Размер пула регулируется переменной окружения `UV_THREADPOOL_SIZE`. Если у тебя тяжёлый I/O или криптография (много хэширования bcrypt), стандартных 4 потоков не хватит — наступит **starvation** (голодание). На проде часто ставят `UV_THREADPOOL_SIZE=16` или по количеству ядер CPU, чтобы узким горлышком не стали эти 4 потока.
+
 ### Архитектура — три слоя
 
 Когда ты пишешь `const data = await readFile('config.json')`, происходит следующее:
@@ -1352,6 +1354,13 @@ console.log(process.cwd());  // '/Users/dzmitry/Desktop/projects/roadmap-backend
 // ── PID (идентификатор процесса) ───────────────────
 console.log(process.pid);    // 12345
 // Нужен для логирования, мониторинга, graceful shutdown
+
+// ── Измерение времени (Performance) ────────────────
+const start = process.hrtime.bigint();
+// ... тяжёлая операция ...
+const end = process.hrtime.bigint();
+console.log(`Операция заняла ${Number(end - start) / 1_000_000} мс`);
+// hrtime.bigint() точнее чем Date.now() и не зависит от синхронизации часов ОС (NTP)
 ```
 
 ### process.memoryUsage() — что значат числа
@@ -1431,7 +1440,131 @@ console.log(process.versions);  // { v8: '12.4...', openssl: '3.0...', ... }
 
 ---
 
-## 9. Шпаргалка для собеседования
+## 9. EventEmitter и Событийно-ориентированная архитектура
+
+Node.js буквально построен вокруг событий. Почти все базовые модули (http, fs, stream, process) наследуются от `EventEmitter`.
+
+```typescript
+import { EventEmitter } from 'node:events';
+
+// 1. Создаём свой эмиттер
+class OrderService extends EventEmitter {
+  createOrder(orderData) {
+    // ... логика сохранения в БД ...
+    const orderId = 42;
+    
+    // Эмитим событие (публикуем)
+    this.emit('orderCreated', { id: orderId, amount: 100 });
+  }
+}
+
+const orders = new OrderService();
+
+// 2. Подписываемся на события
+orders.on('orderCreated', (event) => {
+  console.log(`Отправляем email для заказа ${event.id}`);
+});
+
+orders.once('orderCreated', () => {
+  // Выполнится ТОЛЬКО один раз (для самого первого заказа)
+});
+
+orders.createOrder({});
+```
+
+**Где это встречается под капотом:**
+- Streams: `stream.on('data')`, `stream.on('end')`
+- HTTP: `server.on('request')`
+- Process: `process.on('uncaughtException')`
+
+**Важно:** `EventEmitter` в Node.js работает **синхронно** по умолчанию! Если ты вызываешь `emit('event')`, все listener'ы выполнятся синхронно в том же тике Event Loop, блокируя выполнение следующего за `emit` кода.
+
+---
+
+## 10. Worker Threads, Cluster и Child Process
+
+**Миф:** Node.js = строго один поток, и он не может использовать все ядра процессора.
+**Правда:** У Node.js есть несколько механизмов для масштабирования и CPU-bound задач.
+
+### Cluster (Использование всех ядер)
+
+Позволяет запустить несколько экземпляров твоего HTTP-сервера, которые будут делить один порт (например, `3000`).
+
+```typescript
+import cluster from 'node:cluster';
+import http from 'node:http';
+import os from 'node:os';
+
+if (cluster.isPrimary) {
+  const numCPUs = os.cpus().length;
+  // Основной процесс (Primary) только роутит соединения
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork(); // Создаём рабочий процесс на каждое ядро
+  }
+} else {
+  // Рабочие процессы (Workers) реально обрабатывают HTTP
+  http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end('Hello World\n');
+  }).listen(8000);
+}
+```
+*На практике вместо ручного кода используют `PM2` или Docker/Kubernetes replicas.*
+
+### Worker Threads (CPU-bound задачи)
+
+Для задач, которые требуют долгих вычислений (парсинг гигантских JSON, кодирование видео, AI inference, генерация PDF). Если сделать это в главном потоке — сервер зависнет (Event Loop заблокирован).
+
+```typescript
+import { Worker, isMainThread, parentPort } from 'node:worker_threads';
+
+if (isMainThread) {
+  // Главный поток отдаёт задачу воркеру
+  const worker = new Worker(__filename);
+  worker.on('message', (result) => console.log('Результат:', result));
+  worker.postMessage('Запусти тяжёлую задачу');
+} else {
+  // Выполняется в ОТДЕЛЬНОМ потоке V8
+  parentPort.on('message', (msg) => {
+    // Тяжёлые вычисления (не блокируют основной сервер!)
+    let sum = 0;
+    for (let i = 0; i < 1e9; i++) sum += i;
+    parentPort.postMessage(sum);
+  });
+}
+```
+**Отличие от libuv thread pool:** libuv thread pool управляется Node.js неявно (для I/O и `crypto`). `worker_threads` создаёшь ты сам для выполнения **своего JS кода** в фоне.
+
+---
+
+## 11. AbortController (Отмена операций)
+
+В современном Node.js (и на фронтенде) `AbortController` стал индустриальным стандартом для отмены зависших или ненужных операций (fetch, таймеры, стримы).
+
+```typescript
+// 1. Создаём контроллер
+const controller = new AbortController();
+const signal = controller.signal;
+
+// 2. Передаём сигнал в операцию
+setTimeout(() => console.log('Не выполнится'), 5000, { signal });
+
+// 3. Отменяем операцию через 1 секунду
+setTimeout(() => controller.abort(), 1000);
+
+// Пример с fetch:
+try {
+  const ac = new AbortController();
+  setTimeout(() => ac.abort(), 3000); // Таймаут 3 секунды
+  await fetch('https://api.openai.com/v1/models', { signal: ac.signal });
+} catch (error) {
+  if (error.name === 'AbortError') console.log('Таймаут запроса');
+}
+```
+
+---
+
+## 12. Шпаргалка для собеседования
 
 | Вопрос | Эталонный ответ |
 |---|---|
@@ -1447,10 +1580,14 @@ console.log(process.versions);  // { v8: '12.4...', openssl: '3.0...', ... }
 | readFileSync — когда допустим? | При старте (до listen). **Никогда** в обработчике запроса |
 | Graceful shutdown — зачем? | SIGTERM → закрыть сервер → дождаться запросов → закрыть пул БД → exit(0) |
 | Path Traversal — как защититься? | `path.basename()` отсекает ../. Проверять что resolved path внутри разрешённой директории |
+| EventEmitter синхронен? | Да. `emit()` блокирует выполнение, пока все слушатели не отработают. |
+| Зачем Worker Threads? | Для тяжелых вычислений (CPU-bound) на JS, чтобы не блокировать Event Loop. |
+| AbortController? | Стандарт для отмены асинхронных операций (fetch, setTimeout, потоки). |
+| Что регулирует UV_THREADPOOL_SIZE? | Размер пула потоков libuv для блокирующего I/O (fs, crypto, dns). По умолчанию 4. |
 
 ---
 
-## 10. Чек-поинт
+## 13. Чек-поинт
 
 «Понял, когда...»
 
@@ -1466,9 +1603,16 @@ console.log(process.versions);  // { v8: '12.4...', openssl: '3.0...', ... }
 
 ## Что дальше — практика
 
-После изучения теории → переходи к практическим заданиям:
+После изучения теории → переходи к практическим заданиям, которые сделают из тебя Senior Backend Foundation разработчика:
 
-1. 🔴 **HTTP-сервер на `node:http`** — CRUD /users: GET list, GET :id, POST — без фреймворков
-2. 🔴 **Бенчмарк памяти** — readFile vs createReadStream на большом файле, сравнить `process.memoryUsage()`
-3. 🟡 **Промис-цепочка → async/await** — переписать + обработать все ошибки
-4. 🟡 **CLI-скрипт** — чтение .json файла через `fs/promises`, вывод отформатированных данных
+1. 🔴 **Собственный Роутер (без Express)**
+   Напиши на чистом `node:http` класс `Router`, который позволит объявлять маршруты так:
+   `router.get('/users/:id', handler)` и `router.post('/users', handler)`.
+2. 🔴 **Собственная Middleware-система**
+   Добавь поддержку цепочки middleware: `logger`, `json parser`, `cors`. Как в Express, через функцию `next()`.
+3. 🟡 **Собственный EventEmitter**
+   Напиши класс `EventEmitter` с нуля: реализуй методы `on()`, `emit()`, `off()` и `once()`.
+4. 🟡 **Собственный Readable Stream**
+   Реализуй кастомный Readable Stream (наследуясь от `Readable` из `node:stream`), который генерирует бесконечную последовательность случайных чисел.
+5. 🟢 **Worker Threads Benchmarking**
+   Создай CPU-bound задачу (например, цикл на 10 миллиардов итераций) и сравни время её выполнения в главном потоке (заблокировав Event Loop) и в 4 параллельных Worker Threads.

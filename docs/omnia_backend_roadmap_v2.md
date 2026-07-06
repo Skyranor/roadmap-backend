@@ -38,7 +38,7 @@
 
 ---
 
-### Неделя 1 · HTTP & сети
+### Неделя 1 · HTTP & сети (Senior Foundation)
 
 #### Теория
 
@@ -48,30 +48,36 @@
 - [x] **HTTP-методы: GET / POST / PUT / PATCH / DELETE**
 Семантика идемпотентности. Разница PUT vs PATCH на реальных примерах
 
-- [x] **URL, Path Params, Query Params**
-`/users/:id` vs `/users?role=admin` — когда что использовать
+- [x] **DNS, TCP, TLS, HTTPS — путь запроса**
+DNS resolve → TCP connect → TLS handshake → HTTP. L4 vs L7 балансировка
 
-- [x] **DNS, IP, TCP — путь запроса**
-Понять на уровне схемы: DNS resolve → TCP connect → HTTP request → response
+- [x] **Эволюция HTTP (1.1 vs 2 vs 3)**
+TCP HOL blocking, Мультиплексирование, QUIC, UDP
 
-- [x] **HTTPS, TLS, сертификаты**
-Что такое handshake, почему HTTP в 2026 — моветон
+- [x] **CORS (Cross-Origin Resource Sharing)**
+Preflight (OPTIONS), Simple requests, Access-Control-Allow-Origin
+
+- [x] **Cookies, JWT и Caching**
+HttpOnly, Secure, SameSite, Access/Refresh. ETag, 304 Not Modified, Cache-Control
+
+- [x] **WebSocket (обзор)**
+Чем отличается от HTTP, Connection: Upgrade
 
 #### Практика
 
-- [x] Postman: сделать 20 запросов на JSONPlaceholder, httpbin.org, reqres.in
-- [x] Записать в Postman коллекцию: каждый метод с примером header и body
-- [x] Через браузер DevTools изучить реальный TLS-сертификат любого сайта
-- [x] Нарисовать на бумаге путь запроса от браузера до сервера
+- [x] **Ручной HTTP-сервер:** написать на `node:http`, вернуть 200, 404, 500
+- [x] **Анатомия запроса:** залогировать `req.method`, `req.url`, `req.headers` вручную
+- [x] **cURL мастерство:** сделать запросы curl -X POST, curl -H, curl -d
+- [x] **Анализ трафика:** посмотреть DNS, TCP, TLS и HTTP тайминги в Chrome Network или Wireshark
 
 > [!IMPORTANT]
 > **Deliverable недели**
-> Postman-коллекция (20+ запросов) + схема пути запроса от браузера до сервера
+> Полноценное понимание жизненного цикла запроса. Написанный руками HTTP-сервер без фреймворков и умение делать любые запросы через cURL.
 
 
 ---
 
-### Неделя 2 · Node.js — движок под капотом
+### Неделя 2 · Node.js — движок под капотом (Senior Foundation)
 
 #### Теория
 
@@ -87,19 +93,25 @@ timers → I/O callbacks → idle → poll → check → close. Почему Nod
 - [ ] **Streams и Buffers**
 Зачем нужны стримы при работе с большими файлами. Readable/Writable/Transform
 
-- [ ] **File System (fs), Path, OS модули**
-`readFile` vs `createReadStream` — когда что. Работа с путями кросс-платформенно
+- [ ] **File System (fs), Path, OS, Process модули**
+`readFile` vs `createReadStream`. `process.memoryUsage()`, `process.hrtime.bigint()`
+
+- [ ] **Событийно-ориентированная архитектура (EventEmitter)**
+Как работает `emit`, `on`, `once` под капотом. Синхронность событий
+
+- [ ] **Worker Threads, Cluster и AbortController**
+CPU-bound задачи на Node.js, `UV_THREADPOOL_SIZE`, отмена операций
 
 #### Практика
 
-- [ ] Написать сервер на чистом Node http без фреймворков: роутинг через if/switch
-- [ ] Реализовать чтение большого файла через поток и через readFile — измерить память
-- [ ] Написать промис-цепочку и переписать её в async/await. Обработать все ошибки
-- [ ] Создать простой CLI-скрипт, который читает .json файл и выводит данные
+- [ ] **Собственный роутер:** написать класс Router на чистом `node:http` (get, post)
+- [ ] **Middleware система:** написать цепочку обработчиков с функцией `next()`
+- [ ] **Собственный EventEmitter:** реализовать методы `on`, `emit`, `off` с нуля
+- [ ] **Worker Threads Benchmarking:** сравнить тяжелый цикл в main thread и в worker_threads
 
 > [!IMPORTANT]
 > **Deliverable недели**
-> Сервер на чистом Node: GET /users, POST /users, GET /users/:id — без Express
+> Мини-проект: REST API сервер на чистом Node.js с собственным классом-роутером и кастомной системой middleware (logger, json parser).
 
 
 ---
