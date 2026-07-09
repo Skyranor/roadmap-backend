@@ -1,0 +1,28 @@
+{
+	"compilerOptions": {
+		/* Базовые настройки */
+		"target": "ES2022",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"types": ["node"],
+
+		/* Строгость */
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+
+		/* Пути */
+		"rootDir": "./src",
+		"outDir": "./dist",
+
+		/* Удобство */
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules", "dist"]
+}

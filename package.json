@@ -1,3 +1,14 @@
 {
-  "type": "module"
+  "name": "roadmap-backend",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx --watch",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.0",
+    "typescript": "^7.0.2"
+  }
 }
