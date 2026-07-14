@@ -16,7 +16,7 @@ export interface RouteRequest extends IncomingMessage {
 	body?: unknown
 }
 
-type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export type RouteHandler = (req: RouteRequest, res: ServerResponse) => void
 
@@ -37,19 +37,20 @@ class Router {
 
 	addRoute(method: HTTPMethod, path: string, handler: RouteHandler): void {
 		const paramNames: string[] = []
-		const paramRegex = /:(\w+)/g
 
-		// 1. Экранируем спецсимволы RegExp (точки, скобки и т.д.)
-		const escapedPath = path.replace(/[.+*?^${}()|[\]\\]/g, '\\$&')
-
-		// 2. Заменяем :id на ([^/]+), попутно собираем имена параметров
-		const parsedPath = escapedPath.replace(paramRegex, (_, name: string) => {
-			paramNames.push(name)
-			return '([^/]+)'
+		// 1. Разбиваем путь на сегменты и обрабатываем каждый:
+		//    - параметр (:id) → захватывающая группа
+		//    - статический сегмент → экранируем спецсимволы RegExp
+		const segments = path.split('/').map(segment => {
+			if (segment.startsWith(':')) {
+				paramNames.push(segment.slice(1))
+				return '([^/]+)'
+			}
+			// Экранируем спецсимволы только в статических сегментах
+			return segment.replace(/[.+*?^${}()|[\]\\]/g, '\\$&')
 		})
 
-		// 3. Строим RegExp с якорями начала и конца
-		const pattern = new RegExp(`^${parsedPath}$`)
+		const pattern = new RegExp(`^${segments.join('/')}$`)
 
 		this.routes.push({
 			method,
@@ -83,13 +84,9 @@ class Router {
 			return null
 		}
 
-		// TODO: реализовать матчинг
-		// Подсказка: for...of, а НЕ forEach (return внутри forEach не выходит из match!)
-
 		for (const route of this.routes) {
 			if (route.method !== method) continue
 
-			// 3. Проверяем RegExp на совпадение с очищенным URL
 			const matchResult = route.pattern.exec(pathname)
 
 			if (matchResult) {

@@ -91,4 +91,34 @@ describe('Router Class', () => {
 		const badResult = router.match('GET', '/api/v1-0/users')
 		expect(badResult).toBeNull()
 	})
+
+	it('должен различать /users и /users/ (trailing slash)', () => {
+		const handler = (): void => {}
+		router.get('/users', handler)
+
+		// Без trailing slash — должен найти
+		expect(router.match('GET', '/users')).not.toBeNull()
+		// С trailing slash — другой путь, не должен найти
+		expect(router.match('GET', '/users/')).toBeNull()
+	})
+
+	it('должен возвращать null для пустого URL', () => {
+		router.get('/users', (): void => {})
+
+		const result = router.match('GET', '')
+		expect(result).toBeNull()
+	})
+
+	it('должен учитывать приоритет регистрации (first-match)', () => {
+		const firstHandler = (): void => {}
+		const secondHandler = (): void => {}
+
+		router.get('/users/:id', firstHandler)
+		router.get('/users/:userId', secondHandler)
+
+		const result = router.match('GET', '/users/42')
+		// Должен вернуть первый зарегистрированный хэндлер
+		expect(result?.handler).toBe(firstHandler)
+		expect(result?.params).toEqual({ id: '42' })
+	})
 })
